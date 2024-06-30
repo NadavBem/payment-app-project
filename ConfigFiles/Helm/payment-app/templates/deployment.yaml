@@ -1,0 +1,30 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "payment-app.fullname" . }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app: {{ include "payment-app.name" . }}
+  template:
+    metadata:
+      labels:
+        app: {{ include "payment-app.name" . }}
+    spec:
+      containers:
+        - name: {{ .Chart.Name }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          ports:
+            - containerPort: {{ .Values.service.port }}
+          env:
+            - name: DB_NAME
+              value: "{{ .Values.env.dbName }}"
+            - name: DB_HOST
+              value: "{{ .Values.env.dbHost }}"
+            - name: DB_PORT
+              value: "{{ .Values.env.dbPort }}"
+            - name: DB_USERNAME
+              value: "{{ .Values.env.dbUsername }}"
+            - name: DB_PASSWORD
+              value: "{{ .Values.env.dbPassword }}"

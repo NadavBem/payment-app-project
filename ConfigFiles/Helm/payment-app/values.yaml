@@ -1,0 +1,38 @@
+replicaCount: 1
+
+image:
+  repository: nadav0176/payment_app
+  tag: "26"
+  pullPolicy: IfNotPresent
+
+service:
+  type: LoadBalancer
+  port: 8000
+
+env:
+  dbName: paymant_app
+  dbHost: mysql.database.svc.cluster.local
+  dbPort: 3306
+  dbUsername: nadav
+  dbPassword: 123456
+
+secret:
+  mysqlRootPassword: 123456
+
+serviceAccount:
+  create: false
+  name: ""
+
+ingress:
+  enabled: false
+  annotations: {}
+  hosts:
+    - host: chart-example.local
+      paths: []
+  tls: []
+
+autoscaling:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 10
+  targetCPUUtilizationPercentage: 80

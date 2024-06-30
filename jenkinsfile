@@ -1,0 +1,92 @@
+pipeline {
+    agent {
+        kubernetes {
+            label 'dind-agent'
+            yamlFile 'agent.yaml'
+        }
+    }
+    environment {
+        DOCKERHUB_CREDENTIALS = credentials('dockerhub')
+        GIT_CREDENTIALS = credentials('GitLab')
+        DOCKER_IMAGE = "nadav0176/payment_app"
+        VERSION = "${env.BUILD_NUMBER}"
+        REPO_URL = 'https://gitlab.com/sela-tracks/1099/students/nadavb/application/payment_app'
+        HELM_REGISTRY = 'oci://registry-1.docker.io/nadav0176' 
+    }
+    stages {
+        stage("Checkout code") {
+            steps {
+                checkout scm 
+            }
+        }
+        stage('Build Docker Image') {
+            steps {
+                container('dind') {
+                    script {
+                        sh 'dockerd &'
+                        sh 'sleep 5'
+                        sh 'env'
+                        sh "docker build -t ${DOCKER_IMAGE}:${VERSION} ."
+                    }
+                }
+            }
+        }
+        stage('Push Docker Image') {
+            steps {
+                container('dind') {
+                    script {
+                        withCredentials([usernamePassword(credentialsId: 'dockerhub', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
+                            sh '''
+                            echo "$DOCKER_PASS" | docker login -u "$DOCKER_USER" --password-stdin
+                            docker push "${DOCKER_IMAGE}:${VERSION}"
+                            '''
+                        }
+                    }
+                }
+            }
+        }
+
+        stage('Update Helm Values') {
+            steps {
+                script {
+                    def newTag = "${VERSION}"
+                    sh "sed -i 's/tag: .*/tag: \"${newTag}\"/' ./ConfigFiles/Helm/payment-app/values.yaml"
+                }
+            }
+        }
+
+        stage('Push Changes to GitLab') {
+            steps {
+                script {
+                    withCredentials([usernamePassword(credentialsId: 'GitLab', usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD')]) {
+                        sh '''
+                            git config --global user.email "jenkins@yourcompany.com"
+                            git config --global user.name "Jenkins"
+                            git fetch https://${USERNAME}:${PASSWORD}@gitlab.com/sela-tracks/1099/students/nadavb/application/payment_app.git
+                            git checkout --track origin/main
+                            git add .
+                            git commit -m "Update image tag to ${VERSION}"
+                            git push https://${USERNAME}:${PASSWORD}@gitlab.com/sela-tracks/1099/students/nadavb/application/payment_app.git main
+                        '''
+                    }
+                    echo 'Finished pushing changes to GitLab'
+                }
+            }
+        }
+        stage('Build and push helm chart') {
+            steps {
+                container('dind') {
+                    script {
+                        withCredentials([usernamePassword(credentialsId: 'dockerhub', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
+                            sh '''
+                            echo "$DOCKER_PASS" | docker login -u "$DOCKER_USER" --password-stdin
+                            helm package ./ConfigFiles/Helm/payment-app/
+                            helm push payment-app-0.1.0.tgz oci://registry-1.docker.io/nadav0176 
+                            '''
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

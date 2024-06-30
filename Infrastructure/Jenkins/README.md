@@ -1,0 +1,81 @@
+# Jenkins server establishment on docker-desktop
+Running a Jenkins server on your Docker Desktop Kubernetes cluster using Helm is a straightforward process. 
+
+Here's a step-by-step guide:
+## Step 1: Install Helm
+First, you need to have Helm installed on your system. If you haven't installed it yet, you can follow these instructions:
+
+For Windows, you can download Helm using Chocolatey: 
+```sh
+brew install helm
+```
+
+Verify Helm Installation:
+
+```sh
+helm version
+```
+
+## Step 2: Add Jenkins Helm Repository
+Add the Jenkins Helm chart repository to your Helm configuration:
+
+```sh
+helm repo add jenkins https://charts.jenkins.io
+
+helm repo update
+```
+
+## Step 3: Install Jenkins Using Helm
+Now you can install Jenkins using the Helm chart.
+It's a good practice to create a separate namespace for Jenkins.
+Here’s how you can do it with default settings:
+```sh
+ helm upgrade --install myjenkins jenkins/jenkins --namespace jenkins --create-namespace 
+```
+## Step 4: Monitor the Deployment
+Check the status of the Jenkins pods to ensure they are running:
+```sh
+kubectl get pods --namespace jenkins --watch 
+```
+You should see the Jenkins pod listed with a status of Running after few minutes.
+
+## step 5: Retrieve the Admin Password
+The Jenkins admin password is stored in a Kubernetes secret. Retrieve it using:
+```sh
+kubectl exec --namespace jenkins -it myjenkins-0 -- cat /run/secrets/additional/chart-admin-password
+```
+
+## step 6: Set Up Port Forwarding
+Forward the Jenkins service port to your local machine to access the Jenkins UI:
+```sh
+kubectl --namespace jenkins port-forward svc/myjenkins 8080:8080
+```
+
+## step 7: Access jenkins
+Browse into the jenkins web and enter with the admin password above:
+```sh
+localhost:8080 
+```
+## step 9: Install plugins
+Now, let's install the relevant plugins:
+
+- kubernetes
+- workflow-aggregator
+- git
+- configuration-as-code
+- gitlab-plugin
+- blueocean
+- workflow-multibranch
+- login-theme
+- prometheus
+- github-oauth
+
+Maybe some of the plugins from the list above are already insalled.
+
+## step 10: Clean up
+ 
+Once you've completed setup and ensured everything is working properly, clean up by deleting the Helm release (optional): 
+```sh 
+helm uninstall myjenkins --namespace jenkins
+kubectl delete namespace jenkins
+```

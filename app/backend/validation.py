@@ -1,13 +1,19 @@
 import MySQLdb
+import os
+
+def get_db_connection():
+    db_connection = MySQLdb.connect(
+        host=os.getenv('DB_HOST'),
+        user=os.getenv('DB_USERNAME'),
+        password=os.getenv('DB_PASSWORD'),
+        database=os.getenv('DB_NAME', 'paymant_app'),  
+        port=int(os.getenv('DB_PORT', 3306))  
+    )
+    return db_connection
+
 def check_if_user_exists(func):
     def wrapper(User):
-        db_connection = MySQLdb.connect(
-            host="127.0.0.1",
-            user="root",
-            password="123456",
-            database="paymant_app",
-            port=3309
-        )
+        db_connection = get_db_connection()
         cursor = db_connection.cursor()
         
         cursor.execute(f"SELECT COUNT(*) FROM PaymentAppUser WHERE UserID = '{User.UserID}' OR PhoneNum = '{User.PhoneNum}' OR Email = '{User.Email}' OR PassWD = '{User.PassWD}'")
@@ -23,13 +29,7 @@ def check_if_user_exists(func):
 
 def check_if_creditcard_exists(func):
     def wrapper(creditcard):
-        db_connection = MySQLdb.connect(
-            host="127.0.0.1",
-            user="root",
-            password="123456",
-            database="paymant_app",
-            port=3309
-        )
+        db_connection = get_db_connection()
         cursor = db_connection.cursor()
         
         cursor.execute(f"SELECT COUNT(*) FROM CreditCard WHERE UserID = '{creditcard.UserID}' OR CreditNum = '{creditcard.CreditNum}'")
@@ -46,13 +46,7 @@ def check_if_creditcard_exists(func):
 
 def check_if_bankaccount_exists(func):
     def wrapper(bankaccount):
-        db_connection = MySQLdb.connect(
-            host="127.0.0.1",
-            user="root",
-            password="123456",
-            database="paymant_app",
-            port=3309
-        )
+        db_connection = get_db_connection()
         cursor = db_connection.cursor()
         
         cursor.execute(f"SELECT COUNT(*) FROM BankAccount WHERE UserID = '{bankaccount.UserID}' OR AccountNum = '{bankaccount.AccountNum}'")
