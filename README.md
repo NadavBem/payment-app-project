@@ -113,7 +113,7 @@ You can verify that the Helm chart has been pushed successfully by checking your
    - Username: < Git username >
    - password: < Git password >
 
-![ArgoCD Repositoriest]()
+![ArgoCD Repositoriest](https://github.com/NadavBem/payment-app-project/blob/main/Assets/ArgoCD%20Repositories.png?raw=true)
 
 2. Create the Application
     - Go to Applications and click New App
@@ -129,9 +129,9 @@ You can verify that the Helm chart has been pushed successfully by checking your
 
 press create!! 
 
-![ArgoCD Applications]()
-![Guestbook Application]()
-![Application Deployment]()
+![ArgoCD Applications](https://github.com/NadavBem/payment-app-project/blob/main/Assets/ArgoCD%20Applications.png?raw=true)
+![Guestbook Application](https://github.com/NadavBem/payment-app-project/blob/main/Assets/Guestbook%20Application.png?raw=true)
+![Application Deployment](https://github.com/NadavBem/payment-app-project/blob/main/Assets/Application%20Deployment.png?raw=true)
 
 
 
