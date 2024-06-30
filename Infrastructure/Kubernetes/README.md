@@ -13,7 +13,7 @@ Check the box labeled "Enable Kubernetes".
 
 - Click "Apply & Restart" to enable Kubernetes and restart Docker Desktop.
 
-![docker-cluster](/Users/nadav_bem/Desktop/final_project/Kubernetes/docker-cluster.png)
+![docker-cluster](https://github.com/NadavBem/payment-app-project/blob/main/Infrastructure/Kubernetes/docker-cluster.png?raw=true)
 
 ## Verify Kubernetes Installation
 Check Kubernetes Status:
