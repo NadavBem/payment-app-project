@@ -2,7 +2,7 @@ replicaCount: 1
 
 image:
   repository: nadav0176/payment_app
-  tag: "26"
+  tag: "3"
   pullPolicy: IfNotPresent
 
 service:
