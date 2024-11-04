@@ -1,0 +1,59 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+env:
+  DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+  DOCKERHUB_PASSWORD: ${{ secrets.DOCKERHUB_PASSWORD }}
+  GIT_USERNAME: ${{ secrets.GIT_USERNAME }}
+  GIT_PASSWORD: ${{ secrets.GIT_PASSWORD }}
+  DOCKER_IMAGE: "nadav0176/payment_app"
+  REPO_URL: 'https://github.com/NadavBem/payment-app-project'
+  HELM_REGISTRY: 'oci://registry-1.docker.io/nadav0176'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v1
+
+      - name: Log in to DockerHub
+        run: echo "${{ secrets.DOCKERHUB_PASSWORD }}" | docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
+
+      - name: Build Docker Image
+        run: |
+          docker build -t ${{ env.DOCKER_IMAGE }}:${{ github.run_number }} .
+
+      - name: Push Docker Image
+        run: |
+          docker push ${{ env.DOCKER_IMAGE }}:${{ github.run_number }}
+
+      - name: Update Helm Values
+        run: |
+          sed -i 's/tag: .*/tag: "${{ github.run_number }}"/' ./ConfigFiles/Helm/payment-app/values.yaml
+
+      - name: Commit changes
+        run: |
+          git config --global user.email "github-actions@github.com"
+          git config --global user.name "GitHub Actions"
+          git add .
+          git commit -m "Update image tag to ${{ github.run_number }}"
+          git push
+        env:
+          GIT_USERNAME: ${{ secrets.GIT_USERNAME }}
+          GIT_PASSWORD: ${{ secrets.GIT_PASSWORD }}
+
+      - name: Build and Push Helm Chart
+        run: |
+          helm package ./ConfigFiles/Helm/payment-app/
+          helm push payment-app-0.1.0.tgz ${{ env.HELM_REGISTRY }}
